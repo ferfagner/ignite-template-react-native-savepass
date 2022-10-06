@@ -38,6 +38,7 @@ type RootStackParamList = {
 type NavigationProps = StackNavigationProp<RootStackParamList, 'RegisterLoginData'>;
 
 export function RegisterLoginData() {
+  const dataKey = '@savepass:logins';
   const { navigate } = useNavigation<NavigationProps>()
   const {
     control,
@@ -49,13 +50,36 @@ export function RegisterLoginData() {
     resolver: yupResolver(schema)
   });
 
+  
+
   async function handleRegister(formData: FormData) {
+
+   
+    
     const newLoginData = {
       id: String(uuid.v4()),
       ...formData
     }
+    
 
-    const dataKey = '@savepass:logins';
+    try {
+      const allData = await AsyncStorage.getItem(dataKey)
+      const dataFormated = allData ? JSON.parse(allData) : []
+     
+
+      const allDataFormated = [
+        ...dataFormated,
+        newLoginData
+      ];
+
+      
+      await AsyncStorage.setItem(dataKey, JSON.stringify(allDataFormated))
+
+      navigate('Home')
+    } catch (error) {
+      console.log(error)
+
+    }
 
     // Save data on AsyncStorage and navigate to 'Home' screen
   }
@@ -73,10 +97,7 @@ export function RegisterLoginData() {
             testID="service-name-input"
             title="Nome do serviço"
             name="service_name"
-            error={
-              // Replace here with real content
-              'Has error ? show error message'
-            }
+            error={String(errors.service_name?.message)}
             control={control}
             autoCapitalize="sentences"
             autoCorrect
@@ -85,10 +106,7 @@ export function RegisterLoginData() {
             testID="email-input"
             title="E-mail ou usuário"
             name="email"
-            error={
-              // Replace here with real content
-              'Has error ? show error message'
-            }
+            error={String(errors.email && errors.email?.message)}
             control={control}
             autoCorrect={false}
             autoCapitalize="none"
@@ -98,10 +116,7 @@ export function RegisterLoginData() {
             testID="password-input"
             title="Senha"
             name="password"
-            error={
-              // Replace here with real content
-              'Has error ? show error message'
-            }
+            error={String(errors.password?.message)}
             control={control}
             secureTextEntry
           />
